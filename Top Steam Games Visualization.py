@@ -46,8 +46,8 @@ df_clean['release_year'] = df_clean['release_date'].dt.year
 
 # Graph Visualizations Section
 
-# Graph 1: Distribution of Game Prices
-# This bar chart shows how much these games costs on steam and how many games fall into each price range.
+# Graph 1: Distribution of Game Prices (Histogram Plot)
+# This Histplot shows how much these games costs on steam and how many games fall into each price range.
 # We filtered out the games that are under 100$ to avoid long tails on the chart, which can make it harder to see the distribution.
 plt.figure(figsize=(10, 6))
 # Filter to games under $100 to avoid long "tails" on the chart
@@ -60,3 +60,22 @@ plt.show() # Display the window
 
 # Based on the graph, Majority of the games are priced between 0 - 70.
 # Most famous games are priced around 20 - 60 dollars, while majority of the famous games are free which is around 50 games.
+
+
+# Graph 2: Top 10 Genres of Games (Bar Plot)
+# This bar chart shows the most popular game genre among the top steam games.
+# Since one game can have many genres like Action and Indie, we split and "explode" them 
+# So each genre gets its own row for counting.
+genres_list = df_clean['genres'].str.split(', ').explode()
+top_genres = genres_list.value_counts().head(10).reset_index()
+top_genres.columns = ['Genre', 'Count']
+
+plt.figure(figsize=(12, 6))
+# Bar plot shows the ranking of the most common genres
+sns.barplot(data=top_genres, x='Count', y='Genre', hue='Genre', palette='viridis')
+# Title for the chart
+plt.title('The Top 10 Most Common Genres')
+plt.xlabel('Number Of Games')
+plt.show()  # Display the window
+
+# Based on the graph, Action and Indie games are the most common genre with 70 Games each.
