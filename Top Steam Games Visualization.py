@@ -7,6 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# ------------------------------------------------------------------------------------------------------------------------
+
 # Import Data from a CSV File
 # Data is From Kaggle Dataset of Top Steam Games
 # https://www.kaggle.com/datasets/patelris/steam-top-1495-games-dataset
@@ -16,6 +18,8 @@ df = pd.read_csv('steam_top_games_2026.csv')
 
 # Sea Born theme for the chart
 sns.set_theme(style="whitegrid")
+
+# Data Cleaning and Processing Section
 
 # Pre processing the data by converting the release date column to a date time format. Which helps visualize the data when the game is released, and coerece to handle any errors.
 df['release_date'] = pd.to_datetime(df['release_date'], errors='coerce')
@@ -43,7 +47,7 @@ df['estimated_owners_lower'] = df['estimated_owners'].apply(extract_owners)
 df_clean = df.dropna(subset=['release_date']).copy()
 df_clean['release_year'] = df_clean['release_date'].dt.year
 
-
+# ------------------------------------------------------------------------------------------------------------------------
 # Graph Visualizations Section
 
 # Graph 1: Distribution of Game Prices (Histogram Plot)
@@ -73,9 +77,22 @@ top_genres.columns = ['Genre', 'Count']
 plt.figure(figsize=(12, 6))
 # Bar plot shows the ranking of the most common genres
 sns.barplot(data=top_genres, x='Count', y='Genre', hue='Genre', palette='viridis')
-# Title for the chart
+# Title and label for the chart
 plt.title('The Top 10 Most Common Genres')
 plt.xlabel('Number Of Games')
 plt.show()  # Display the window
 
-# Based on the graph, Action and Indie games are the most common genre with 70 Games each.
+# Based on the graph, Action and Indie games are the most common genre with 70 Games each. Followed by Adventure, RPG, Strategy and others.
+
+# Graph 3: Correlation Heatmap 
+# This is a heatmap that shows how different number metrics of the game relate to each other.
+# Such as the price, positive and negative reviews, peak concurrent users, and estimated owners.
+plt.figure(figsize=(10, 6))
+# Select only numeric columns to see how they affect each other
+corr_cols = ['price_usd', 'positive_reviews', 'negative_reviews', 'peak_ccu', 'estimated_owners_lower']
+# .corr() calculates the relationship strength (closer to 1.0 = stronger link)
+sns.heatmap(df_clean[corr_cols].corr(), annot=True, cmap='coolwarm', fmt=".2f")
+# TItle for the chart
+plt.title('Relationship Between Game Metrics (Correlation)')
+plt.show() # Display the window
+
