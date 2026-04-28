@@ -74,7 +74,7 @@ genres_list = df_clean['genres'].str.split(', ').explode()
 top_genres = genres_list.value_counts().head(10).reset_index()
 top_genres.columns = ['Genre', 'Count']
 
-plt.figure(figsize=(12, 6))
+plt.figure(figsize=(10, 6))
 # Bar plot shows the ranking of the most common genres
 sns.barplot(data=top_genres, x='Count', y='Genre', hue='Genre', palette='viridis')
 # Title and label for the chart
@@ -84,7 +84,7 @@ plt.show()  # Display the window
 
 # Based on the graph, Action and Indie games are the most common genre with 70 Games each. Followed by Adventure, RPG, Strategy and others.
 
-# Graph 3: Correlation Heatmap 
+# Graph 3: Correlation Heatmap (HeatMap)
 # This is a heatmap that shows how different number metrics of the game relate to each other.
 # Such as the price, positive and negative reviews, peak concurrent users, and estimated owners.
 plt.figure(figsize=(10, 6))
@@ -96,3 +96,18 @@ sns.heatmap(df_clean[corr_cols].corr(), annot=True, cmap='coolwarm', fmt=".2f")
 plt.title('Relationship Between Game Metrics (Correlation)')
 plt.show() # Display the window
 
+# Graph 4: Release Trends Over Time (Line Plot)
+# This line plots show when the most popular games were released over the years and how many games were released each year
+# Seeing the release trends over time
+
+# Group the data by their release year and count how many games were released that year
+release_trend = df_clean.groupby('release_year').size().reset_index(name='count')
+
+plt.figure(figsize=(10, 6))
+# Lineplot is best for showing changes over time (years)
+sns.lineplot(data=release_trend, x='release_year', y='count', marker='o', color='red')
+# Title and label for the chart
+plt.title('Steam Growth: Games Released per Year')
+plt.xlabel('Year')
+plt.ylabel('Total Games Released')
+plt.show() # Display the window
