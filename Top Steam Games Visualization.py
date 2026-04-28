@@ -111,3 +111,38 @@ plt.title('Steam Growth: Games Released per Year')
 plt.xlabel('Year')
 plt.ylabel('Total Games Released')
 plt.show() # Display the window
+
+# ---------------------------------------------------------------------------------------------------------------------------
+# Dashboard for all 4 Graphs
+
+# 1. 2x2 Grid (2 rows, 2 columns)
+fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12, 6))
+
+# Adding Graphs to the Grid 
+# axes[0, 0] is the Top-Left slot
+sns.histplot(df_clean[df_clean['price_usd'] < 100]['price_usd'], ax=axes[0, 0], color='skyblue')
+axes[0, 0].set_title('Price Distribution')
+axes[0, 0].set_xlabel('Price in USD')
+axes[0, 0].set_ylabel('Number of Games')
+
+# axes[0, 1] is the Top-Right slot
+sns.barplot(data=top_genres, x='Count', y='Genre', ax=axes[0, 1], palette='viridis')
+axes[0, 1].set_title('Top 10 Genres')
+axes[0, 1].set_xlabel('Number Of Games')
+
+# axes[1, 0] is the Bottom-Left slot
+sns.heatmap(df_clean[corr_cols].corr(), annot=True, ax=axes[1, 0], cmap='coolwarm')
+axes[1, 0].set_title('Correlation Heatmap')
+
+# axes[1, 1] is the Bottom-Right slot
+sns.lineplot(data=release_trend, x='release_year', y='count', ax=axes[1, 1], color='red')
+axes[1, 1].set_title('Release Trend Over Time')
+axes[1, 1].set_xlabel('Year')
+axes[1, 1].set_ylabel('Total Games Released')
+
+# Clean up the layout
+# This function automatically spaces out the charts so titles don't overlap labels
+plt.tight_layout()
+
+# Show the combined screen
+plt.show()
