@@ -47,20 +47,37 @@ df['estimated_owners_lower'] = df['estimated_owners'].apply(extract_owners)
 df_clean = df.dropna(subset=['release_date']).copy()
 df_clean['release_year'] = df_clean['release_date'].dt.year
 
+
+# Prepare Data Sets for each Graph
+# Storing Neccessary Data as a variable to use
+
+# Graph 2 Bar Plot Tools
+# Since one game can have many genres like Action and Indie, we split and "explode" them 
+# So each genre gets its own row for counting.
+genres_list = df_clean['genres'].str.split(', ').explode()
+top_genres = genres_list.value_counts().head(10).reset_index()
+top_genres.columns = ['Genre', 'Count']
+
+# Graph 3 HeatMap Tool
+# Select only numeric columns to see how they affect each other
+corr_cols = ['price_usd', 'positive_reviews', 'negative_reviews', 'peak_ccu', 'estimated_owners_lower']
+
+# Graph 4 Line Plot Tool
+# Group the data by their release year and count how many games were released that year
+release_trend = df_clean.groupby('release_year').size().reset_index(name='count')
 # ------------------------------------------------------------------------------------------------------------------------
 # Graph Visualizations Section
 
 # Graph 1: Distribution of Game Prices (Histogram Plot)
 # This Histplot shows how much these games costs on steam and how many games fall into each price range.
 # We filtered out the games that are under 100$ to avoid long tails on the chart, which can make it harder to see the distribution.
-plt.figure(figsize=(10, 6))
-# Filter to games under $100 to avoid long "tails" on the chart
-sns.histplot(df_clean[df_clean['price_usd'] < 100]['price_usd'], bins=30, kde=True, color='skyblue')
-# Title and Labels for the chart
-plt.title('How much do games cost? (Price Distribution)')
-plt.xlabel('Price in USD')
-plt.ylabel('Number of Games')
-plt.show() # Display the window
+
+def plot_1_prices(ax):
+    # Filter to games under $100 to avoid long "tails" on the chart
+    sns.histplot(df_clean[df_clean['price_usd'] < 100]['price_usd'], bins=30, kde=True, color='skyblue', ax=ax)
+    # Title and Labels for the chart
+    ax.set_title('Graph 1: Price Distribution (Use Arrow Keys to Move)')
+    ax.set_xlabel('Price in USD')
 
 # Based on the graph, Majority of the games are priced between 0 - 70.
 # Most famous games are priced around 20 - 60 dollars, while majority of the famous games are free which is around 50 games.
@@ -70,79 +87,98 @@ plt.show() # Display the window
 # This bar chart shows the most popular game genre among the top steam games.
 # Since one game can have many genres like Action and Indie, we split and "explode" them 
 # So each genre gets its own row for counting.
-genres_list = df_clean['genres'].str.split(', ').explode()
-top_genres = genres_list.value_counts().head(10).reset_index()
-top_genres.columns = ['Genre', 'Count']
 
-plt.figure(figsize=(10, 6))
-# Bar plot shows the ranking of the most common genres
-sns.barplot(data=top_genres, x='Count', y='Genre', hue='Genre', palette='viridis')
-# Title and label for the chart
-plt.title('The Top 10 Most Common Genres')
-plt.xlabel('Number Of Games')
-plt.show()  # Display the window
+def plot_2_genres(ax):
+    sns.barplot(data=top_genres, x='Count', y='Genre', hue='Genre', palette='viridis', ax=ax)
+    ax.set_title('Graph 2: Top 10 Common Genres')
 
 # Based on the graph, Action and Indie games are the most common genre with 70 Games each. Followed by Adventure, RPG, Strategy and others.
 
 # Graph 3: Correlation Heatmap (HeatMap)
 # This is a heatmap that shows how different number metrics of the game relate to each other.
 # Such as the price, positive and negative reviews, peak concurrent users, and estimated owners.
-plt.figure(figsize=(10, 6))
-# Select only numeric columns to see how they affect each other
-corr_cols = ['price_usd', 'positive_reviews', 'negative_reviews', 'peak_ccu', 'estimated_owners_lower']
-# .corr() calculates the relationship strength (closer to 1.0 = stronger link)
-sns.heatmap(df_clean[corr_cols].corr(), annot=True, cmap='coolwarm', fmt=".2f")
-# TItle for the chart
-plt.title('Relationship Between Game Metrics (Correlation)')
-plt.show() # Display the window
+
+def plot_3_heatmap(ax):
+    # .corr() calculates the relationship strength (closer to 1.0 = stronger link)
+    sns.heatmap(df_clean[corr_cols].corr(), annot=True, cmap='coolwarm', fmt=".2f", ax=ax)
+    ax.set_title('Graph 3: Correlation Heatmap')
+
 
 # Graph 4: Release Trends Over Time (Line Plot)
 # This line plots show when the most popular games were released over the years and how many games were released each year
 # Seeing the release trends over time
 
-# Group the data by their release year and count how many games were released that year
-release_trend = df_clean.groupby('release_year').size().reset_index(name='count')
+def plot_4_trends(ax):
+    sns.lineplot(data=release_trend, x='release_year', y='count', marker='o', color='red', ax=ax)
+    ax.set_title('Graph 4: Games Released per Year')
 
-plt.figure(figsize=(10, 6))
-# Lineplot is best for showing changes over time (years)
-sns.lineplot(data=release_trend, x='release_year', y='count', marker='o', color='red')
-# Title and label for the chart
-plt.title('Steam Growth: Games Released per Year')
-plt.xlabel('Year')
-plt.ylabel('Total Games Released')
-plt.show() # Display the window
 
 # ---------------------------------------------------------------------------------------------------------------------------
-# Dashboard for all 4 Graphs
 
-# 1. 2x2 Grid (2 rows, 2 columns)
-fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12, 6))
+# Dashboard Slide, A Combination of all the graphs in one slide.
 
-# Adding Graphs to the Grid 
-# axes[0, 0] is the Top-Left slot
-sns.histplot(df_clean[df_clean['price_usd'] < 100]['price_usd'], ax=axes[0, 0], color='skyblue')
-axes[0, 0].set_title('Price Distribution')
-axes[0, 0].set_xlabel('Price in USD')
-axes[0, 0].set_ylabel('Number of Games')
+def plot_5_dashboard(fig):
+    # This function is special because it clears the whole figure to create subplots
+    fig.clf() 
+    axes = fig.subplots(2, 2)
+    
+    # Fill the dashboard slots
+    # Histogram Plot of Prices
+    sns.histplot(df_clean[df_clean['price_usd'] < 100]['price_usd'], ax=axes[0,0], color='skyblue')
+    axes[0,0].set_title('Prices')
+    
+    # Bar Plot Of Genres
+    sns.barplot(data=top_genres, x='Count', y='Genre', ax=axes[0,1], palette='viridis')
+    axes[0,1].set_title('Genres')
+    
+    # Heatmap of Correlations
+    sns.heatmap(df_clean[corr_cols].corr(), annot=True, ax=axes[1,0], cmap='coolwarm', cbar=False)
+    axes[1,0].set_title('Correlation')
+    
+    # Line Plot of Release Trends
+    sns.lineplot(data=release_trend, x='release_year', y='count', ax=axes[1,1], color='red')
+    axes[1,1].set_title('Trends')
+    
+    # Dashboard Tools
+    fig.suptitle("Final Slide: Summary Dashboard", fontsize=16)
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
 
-# axes[0, 1] is the Top-Right slot
-sns.barplot(data=top_genres, x='Count', y='Genre', ax=axes[0, 1], palette='viridis')
-axes[0, 1].set_title('Top 10 Genres')
-axes[0, 1].set_xlabel('Number Of Games')
+# ---------------------------------------------------------------------------------------------------------------------------
+# Slide Manager and Nav Logic
 
-# axes[1, 0] is the Bottom-Left slot
-sns.heatmap(df_clean[corr_cols].corr(), annot=True, ax=axes[1, 0], cmap='coolwarm')
-axes[1, 0].set_title('Correlation Heatmap')
+# List of slides
+slides = [plot_1_prices, plot_2_genres, plot_3_heatmap, plot_4_trends, plot_5_dashboard]
+current_slide = 0
 
-# axes[1, 1] is the Bottom-Right slot
-sns.lineplot(data=release_trend, x='release_year', y='count', ax=axes[1, 1], color='red')
-axes[1, 1].set_title('Release Trend Over Time')
-axes[1, 1].set_xlabel('Year')
-axes[1, 1].set_ylabel('Total Games Released')
+# Function to handle key Presses
+def on_key(event):
+    global current_slide
+    # RIght Key press
+    if event.key == 'right':
+        current_slide = (current_slide + 1) % len(slides)
+    # Left Key Press
+    elif event.key == 'left':
+        current_slide = (current_slide - 1) % len(slides)
+    else:
+        return # Ignore other keys
 
-# Clean up the layout
-# This function automatically spaces out the charts so titles don't overlap labels
-plt.tight_layout()
+    # Redraw logic
+    if slides[current_slide] == plot_5_dashboard:
+        plot_5_dashboard(fig)
+    else:
+        fig.clf()
+        new_ax = fig.add_subplot(111)
+        slides[current_slide](new_ax)
+    
+    # Draw the Updated Graph
+    plt.draw()
 
-# Show the combined screen
+# Initial display
+fig, ax = plt.subplots(figsize=(10, 6))
+slides[current_slide](ax)
+
+# Connect the key press function 
+fig.canvas.mpl_connect('key_press_event', on_key)
+
+print("Press Left and Right Arrow Keys to Navigate Through the Graphs")
 plt.show()
