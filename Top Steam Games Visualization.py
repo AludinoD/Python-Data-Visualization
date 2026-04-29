@@ -68,6 +68,11 @@ release_trend = df_clean.groupby('release_year').size().reset_index(name='count'
 # ------------------------------------------------------------------------------------------------------------------------
 # Graph Visualizations Section
 
+# Graphs are Put into functions because they are put into slides for easier navigation.
+# Each function takes an "ax" argument which is the area where the graph will be drawn, this allows us to reuse the same function for both individual slides and the final dashboard slide.
+# Each graph is drawn depending on where the current slide is, it calls the function to draw the graph based on the given data.
+# So all data is prepared in those functions.
+
 # Graph 1: Distribution of Game Prices (Histogram Plot)
 # This Histplot shows how much these games costs on steam and how many games fall into each price range.
 # We filtered out the games that are under 100$ to avoid long tails on the chart, which can make it harder to see the distribution.
@@ -91,6 +96,7 @@ def plot_1_prices(ax):
 def plot_2_genres(ax):
     sns.barplot(data=top_genres, x='Count', y='Genre', hue='Genre', palette='viridis', ax=ax)
     ax.set_title('Graph 2: Top 10 Common Genres')
+    ax.set_xlabel('Number of Games')
 
 # Based on the graph, Action and Indie games are the most common genre with 70 Games each. Followed by Adventure, RPG, Strategy and others.
 
@@ -111,6 +117,7 @@ def plot_3_heatmap(ax):
 def plot_4_trends(ax):
     sns.lineplot(data=release_trend, x='release_year', y='count', marker='o', color='red', ax=ax)
     ax.set_title('Graph 4: Games Released per Year')
+    ax.set_xlabel('Release Year')
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
