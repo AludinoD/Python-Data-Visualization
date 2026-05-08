@@ -120,14 +120,41 @@ def plot_4_trends(ax):
     ax.set_xlabel('Release Year')
 
 
+# Graph 5 : Quality Vs Price (Scatter Plot)
+# This scatter plot shows the price of the game on the x axis and the metacritic score on the y axis.
+# Metacritic score is a common way to check the quality of a game, on a scale of 100 , 100 is the best score.
+def plot_5_quality(ax):
+    # We drop rows without a Metacritic score for this specific plot
+    quality_df = df_clean.dropna(subset=['metacritic_score'])
+    sns.scatterplot(data=quality_df, x='price_usd', y='metacritic_score', alpha=0.6, ax=ax)
+    sns.regplot(data=quality_df, x='price_usd', y='metacritic_score', scatter=False, color='black', ax=ax)
+    ax.set_title('Graph 5: Quality Vs Price')
+    ax.set_xlabel("Price (USD)")
+    ax.set_ylabel("Metacritic Score")
+
+# Graph 6 : Platform Accessibility (Pie Chart)
+# This pie chart shows how many games support mac/linux vs windows.
+def plot_6_platform(ax):
+    # Calculate how many games support Mac/Linux vs only Windows
+    mac_linux = len(df_clean[(df_clean['platforms_mac'] == True) | (df_clean['platforms_linux'] == True)])
+    windows_only = len(df_clean) - mac_linux
+    
+    labels = ['Cross-Platform (Mac/Linux)', 'Windows Only']
+    sizes = [mac_linux, windows_only]
+    colors = ['#66b3ff', '#ff9999']
+    
+    ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=140, colors=colors, explode=(0.1, 0))
+    ax.set_title('Graph 6: Platform Accessibility')
+
+
 # ---------------------------------------------------------------------------------------------------------------------------
 
 # Dashboard Slide, A Combination of all the graphs in one slide.
 
-def plot_5_dashboard(fig):
+def dashboard(fig):
     # This function is special because it clears the whole figure to create subplots
     fig.clf() 
-    axes = fig.subplots(2, 2)
+    axes = fig.subplots(3, 2)
     
     # Fill the dashboard slots
     # Histogram Plot of Prices
@@ -145,6 +172,14 @@ def plot_5_dashboard(fig):
     # Line Plot of Release Trends
     sns.lineplot(data=release_trend, x='release_year', y='count', ax=axes[1,1], color='red')
     axes[1,1].set_title('Trends')
+
+    # Scatter Plot of Quality vs Price
+    plot_5_quality(axes[2, 0])
+    axes[2, 0].set_title('Quality vs. Price')
+    
+    # Pie Chart of Platform Accesibility
+    plot_6_platform(axes[2, 1])
+    plt.axes[2,1].set_title('Platform Support')
     
     # Dashboard Tools
     fig.suptitle("Final Slide: Summary Dashboard", fontsize=16)
@@ -154,7 +189,7 @@ def plot_5_dashboard(fig):
 # Slide Manager and Nav Logic
 
 # List of slides
-slides = [plot_1_prices, plot_2_genres, plot_3_heatmap, plot_4_trends, plot_5_dashboard]
+slides = [plot_1_prices, plot_2_genres, plot_3_heatmap, plot_4_trends, plot_5_quality, plot_6_platform, dashboard]
 current_slide = 0
 
 # Function to handle key Presses
@@ -168,12 +203,14 @@ def on_key(event):
         current_slide = (current_slide - 1) % len(slides)
     else:
         return # Ignore other keys
-
+    
+    fig.clf()
     # Redraw logic
-    if slides[current_slide] == plot_5_dashboard:
-        plot_5_dashboard(fig)
+    if slides[current_slide] == dashboard:
+        fig.set_size_inches(16, 12)
+        dashboard(fig)
     else:
-        fig.clf()
+        fig.set_size_inches(10, 6)
         new_ax = fig.add_subplot(111)
         slides[current_slide](new_ax)
     
